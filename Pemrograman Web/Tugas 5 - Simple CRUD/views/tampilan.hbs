@@ -1,0 +1,148 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>CRUD Node.JS + MySQL</title>
+  <link href="/assets/css/bootstrap.css" rel="stylesheet" type="text/css"/>
+</head>
+
+<body>
+  <div class="container">
+    <center><br><h2>Data Mahasiswa</h2><br></center>
+    <table class="table table-striped" id="mytable">
+    
+    <thead>
+      <tr>
+        <th>NRP</th>
+        <th>Nama</th>
+        <th>Jenis Kelamin</th>
+        <th>Alamat</th>
+        <th>Aksi</th>
+        </tr>
+    </thead>
+  
+    <tbody>
+      {{#each results}}
+      <tr>
+        <td>{{ nrp }}</td>
+        <td>{{ nama }}</td>
+        <td>{{ jenis_kelamin }}</td>
+        <td>{{ alamat }}</td>
+        <td>
+          <a href="javascript:void(0)" class="btn btn-sm btn-info edit" data-nrp="{{ nrp }}" data-name="{{ nama }}" data-jenis_kelamin="{{ jenis_kelamin }}" data-alamat="{{ alamat }}">Edit</a>
+          <a href="javascript:void(0)" class="btn btn-sm btn-danger delete" data-nrp="{{ nrp }}">Hapus</a>
+        </td>
+      </tr>
+      {{/each}}
+    </tbody>
+    
+    </table>
+    <button class="btn btn-success" data-toggle="modal" data-target="#myModalAdd">Tambah data</button>
+  </div>
+ 
+  <!-- TAMBAH DATA-->
+  <form action="/save" method="post">
+    <div class="modal fade" id="myModalAdd" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Tambah data baru</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+
+          <div class="modal-body">
+            <div class="form-group">
+              <input type="text" name="nrp" class="form-control" placeholder="NRP" required>
+            </div>
+            <div class="form-group">
+              <input type="text" name="nama" class="form-control" placeholder="Nama" required>
+            </div>
+            <div class="form-group">
+              <input type="text" name="jenis_kelamin" class="form-control" placeholder="Jenis kelamin" required>
+            </div>
+            <div class="form-group">
+              <input type="text" name="alamat" class="form-control" placeholder="Alamat" required>
+            </div>
+          </div>
+             
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+            <button type="submit" class="btn btn-primary">Simpan</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </form>
+ 
+  <!-- EDIT DATA-->
+  <form action="/update" method="post">
+    <div class="modal fade" id="EditModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Edit Data</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          
+          <div class="modal-body">
+            <div class="form-group">
+              <input type="text" name="nama" class="form-control" placeholder="Nama" required>
+            </div>
+            <div class="form-group">
+              <input type="text" name="jenis_kelamin" class="form-control" placeholder="Jenis Kelamin" required>
+            </div>
+            <div class="form-group">
+              <input type="text" name="alamat" class="form-control" placeholder="Alamat" required>
+            </div>
+          </div>
+          
+          <div class="modal-footer">
+            <input type="hidden" name="nrp" class="nrp">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+            <button type="submit" class="btn btn-primary">Perbarui</button>
+          </div>
+        
+        </div>
+      </div>
+    </div>
+  </form>
+ 
+  <!-- HAPUS DATA-->
+  <form id="add-row-form" action="/delete" method="post">
+    <div class="modal fade" id="DeleteModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+  
+          <div class="modal-header">
+            <h5 class="modal-title" id="myModalLabel">Hapus Data</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          </div>
+          
+          <div class="modal-body">
+            <strong>Anda yakin mau menghapus data ini?</strong>
+          </div>
+          
+          <div class="modal-footer">
+            <input type="hidden" name="nrp" class="form-control nrp2" required>
+            <button type="button" class="btn btn-default" data-dismiss="modal">Tutup</button>
+            <button type="submit" class="btn btn-success">Hapus</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <!-- CONTROLLER -->
+  <script src="/assets/js/jquery-3.4.1.js"></script>
+  <script src="/assets/js/bootstrap.js"></script>
+  <script src="/assets/js/controller.js"> </script>
+
+</body>
+</html>
