@@ -1,3 +1,6 @@
-# Struktur Data<br>
-<br>
-<i>For the final project special thanks to Amir Fanani, Hanna Masfuva D, Annisa Fadhilasari, & Fajar Andhika.
+# Struktur Data
+
+Kumpulan implementasi struktur data dan proyek akhir.
+
+Terima kasih kepada Amir Fanani, Hanna Masfuva D., Annisa Fadhilasari, dan
+Fajar Andhika atas kontribusinya pada proyek akhir.

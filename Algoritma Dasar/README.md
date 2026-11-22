@@ -1,5 +1,7 @@
-## Kumpulan Materi Mata Kuliah Algortima Dasar Teknik Informatika UPN "Veteran" Jawa Timur 2017
+# Algoritma Dasar
 
-Di bawah bimbingan :<br>
-Eva Yulia P., S.Kom, M.Kom.<br>
-Intan Yuniar P., S.Kom, M.Sc.
+Kumpulan tugas mata kuliah Algoritma Dasar, Program Studi Teknik Informatika,
+UPN "Veteran" Jawa Timur (2017).
+
+**Dosen pengampu:** Eva Yulia P., S.Kom., M.Kom. dan Intan Yuniar P., S.Kom.,
+M.Sc.

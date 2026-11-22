@@ -1,6 +1,9 @@
-Untuk menjalankan program, anda harus mengunduh :
-1. monk_uji.csv 
-2. monk.csv
-3. Naive_Bayes_Program.py
+## Menjalankan program
 
-kami telah menambahkan komentar pada tiap baris kode yang berfungsi untuk menjelaskan apa maksud kodenya, selamat ngoding!
+Pastikan berkas `monk.csv`, `monk_uji.csv`, dan `Naive_Bayes_Program.py` berada
+dalam satu direktori. Pasang dependensi Python yang diperlukan (`pandas` dan
+`numpy`), lalu jalankan:
+
+```bash
+python Naive_Bayes_Program.py
+```

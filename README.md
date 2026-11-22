@@ -1,2 +1,4 @@
-# Ngampus-
-Repositori buat seluruh tugas dari kampus yang emang pantes buat ditaruh di Github
+# Ngampus
+
+Kumpulan tugas, latihan, dan proyek perkuliahan Teknik Informatika. Setiap
+folder mata kuliah berisi kode sumber, materi, atau dokumentasi terkait.

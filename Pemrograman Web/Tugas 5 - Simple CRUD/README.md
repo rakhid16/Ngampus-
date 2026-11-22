@@ -1,12 +1,17 @@
-1. _clone repository_ ini
-2. Nyalakan <b><i>Relational</b> Database Management System</i> kalian
-3. Eksekusi berkas <b>mhs.sql</b>
-4. Masuk ke dalam direktori <b>Tugas 5 - Simple CRUD</b>
-5. Ketikan pada terminal antum(pastikan sudah terpasang Node.JS) perintah di bawah ini :
+## Persiapan
+
+1. Pastikan Node.js, npm, dan MySQL/MariaDB sudah terpasang.
+2. Buat basis data `crud_mhs`, pilih basis data tersebut, lalu jalankan `mhs.sql`.
+3. Dari direktori ini, pasang dependensi jika belum tersedia:
+
 ```bash
-node index
+npm install
 ```
-atau 
+
+## Menjalankan aplikasi
+
+Jalankan server dari direktori proyek:
+
 ```bash
 node index.js
 ```

@@ -1,73 +1,70 @@
-// FUNGSINYA SEPERTI import PADA PYTHON DAN #include PADA C
-// const AGAR ISI DARI VARIABEL'NYA KONSTAN/TETAP/TIDAK BERUBAH
-const hbs = require('hbs')
 const path = require('path')
-const mysql = require('mysql')
 const express = require('express')
 const bodyParser = require('body-parser')
-const app = express()
+const mysql = require('mysql')
 
-// KONFIGURASI KONEKSI DENGAN DATABASE
-const conn = mysql.createConnection({
+const app = express()
+const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: '',
-  database: 'crud_mhs'
+  database: 'crud_mhs',
 })
- 
-// SAMBUNGKAN DENGAN DATABASE
-conn.connect((err) =>{
-  if(err) throw err
+
+connection.connect((error) => {
+  if (error) throw error
   console.log('Database tersambung')
 })
- 
-// ATUR MIDDLEWARE
-app.set('views',path.join(__dirname,'views'))
+
+app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'hbs')
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
-app.use('/assets',express.static(__dirname + '/public'))
- 
-// ROUTING UNTUK MENAMPILKAN LAMAN UTAMA - SEMUA DATA
-app.get('/',(req, res) => {
-  let sql = "SELECT * FROM mhs"
-  let query = conn.query(sql, (err, results) => {
-    if(err) throw err
-    res.render('tampilan',{
-      results: results
-    })
+app.use('/assets', express.static(path.join(__dirname, 'public')))
+
+app.get('/', (request, response) => {
+  connection.query('SELECT * FROM mhs', (error, results) => {
+    if (error) throw error
+    response.render('tampilan', { results })
   })
 })
- 
-// ROUTING UNTUK SIMPAN DATA
-app.post('/save',(req, res) => {
-  let data = {nrp: req.body.nrp, nama: req.body.nama, jenis_kelamin: req.body.jenis_kelamin, alamat: req.body.alamat}
-  let sql = "INSERT INTO mhs SET ?"
-  let query = conn.query(sql, data,(err, results) => {
-    if(err) throw err
-    res.redirect('/')
+
+app.post('/save', (request, response) => {
+  const student = {
+    nrp: request.body.nrp,
+    nama: request.body.nama,
+    jenis_kelamin: request.body.jenis_kelamin,
+    alamat: request.body.alamat,
+  }
+
+  connection.query('INSERT INTO mhs SET ?', student, (error) => {
+    if (error) throw error
+    response.redirect('/')
   })
 })
- 
-// ROUTING UNTUK UBAH DATA
-app.post('/update',(req, res) => {
-  let sql = "UPDATE mhs SET nama='"+req.body.nama+"', jenis_kelamin='"+req.body.jenis_kelamin+"', alamat='"+req.body.alamat+"' WHERE nrp="+req.body.nrp
-  let query = conn.query(sql, (err, results) => {
-    if(err) throw err
-    res.redirect('/')
+
+app.post('/update', (request, response) => {
+  const { nama, jenis_kelamin, alamat, nrp } = request.body
+  const query =
+    'UPDATE mhs SET nama = ?, jenis_kelamin = ?, alamat = ? WHERE nrp = ?'
+
+  connection.query(query, [nama, jenis_kelamin, alamat, nrp], (error) => {
+    if (error) throw error
+    response.redirect('/')
   })
 })
- 
-// ROUTING UNTUK HAPUS DATA
-app.post('/delete',(req, res) => {
-  let sql = "DELETE FROM mhs WHERE nrp="+req.body.nrp+""
-  let query = conn.query(sql, (err, results) => {
-    if(err) throw err
-    res.redirect('/')
-  })
+
+app.post('/delete', (request, response) => {
+  connection.query(
+    'DELETE FROM mhs WHERE nrp = ?',
+    [request.body.nrp],
+    (error) => {
+      if (error) throw error
+      response.redirect('/')
+    },
+  )
 })
- 
-// ATUR PORT SERVER
+
 app.listen(3000, () => {
-  console.log('Server sedang berjalan pada port 3000 - http://localhost:3000')
+  console.log('Server berjalan di http://localhost:3000')
 })
