@@ -1,299 +1,154 @@
+#include <ctype.h>
+#include <errno.h>
+#include <limits.h>
 #include <stdio.h>
-int p, q, a, HasilAkhir, sisa, pilih;
+#include <stdlib.h>
+#include <string.h>
 
-IfHasilAkhir() {
-  if (HasilAkhir == 0)
-    printf("abcdef ");
-  if (HasilAkhir == 1)
-    printf("bc ");
-  if (HasilAkhir == 2)
-    printf("abdeg ");
-  if (HasilAkhir == 3)
-    printf("abcdg ");
-  if (HasilAkhir == 4)
-    printf("bcfg ");
-  if (HasilAkhir == 5)
-    printf("acdfg ");
-  if (HasilAkhir == 6)
-    printf("acdefg ");
-  if (HasilAkhir == 7)
-    printf("abc ");
-  if (HasilAkhir == 8)
-    printf("abcdefg ");
-  if (HasilAkhir == 9)
-    printf("abcdfg ");
-}
+static const char *const digit_segments[] = {
+    "abcdef", "bc", "abdeg", "abcdg", "bcfg",
+    "acdfg",  "acdefg", "abc",  "abcdefg", "abcdfg",
+};
 
-IfMinus() {
-  if (sisa > -10 && sisa < 0) {
-    sisa = sisa * -1;
-    printf("g ");
-    HasilAkhir = sisa;
-    IfHasilAkhir();
-  }
-  if (sisa > -100 && sisa <= -10) {
-    sisa = sisa * -1;
-    printf("g ");
-    HasilAkhir = sisa / 10;
-    IfHasilAkhir();
-    HasilAkhir = sisa % 10;
-    IfHasilAkhir();
-  }
-  if (sisa > -1000 && sisa <= -100) {
-    sisa = sisa * -1;
-    printf("g ");
-    HasilAkhir = sisa / 100;
-    IfHasilAkhir();
-    HasilAkhir = sisa % 100;
-    HasilAkhir = HasilAkhir / 10;
-    IfHasilAkhir();
-    HasilAkhir = sisa % 10;
-    IfHasilAkhir();
-  }
-  if (sisa > -10000 && sisa <= -1000) {
-    sisa = sisa * -1;
-    printf("g ");
-    IfSisa6();
-  }
-  if (sisa > -100000 && sisa <= -10000) {
-    sisa = sisa * -1;
-    printf("g ");
-    IfSisa5();
-  }
-  if (sisa > -1000000 && sisa <= -100000) {
-    sisa = sisa * -1;
-    printf("g ");
-    IfSisa4();
-  }
-  if (sisa > -10000000 && sisa <= -1000000) {
-    sisa = sisa * -1;
-    printf("g ");
-    IfSisa3();
-  }
-  if (sisa > -100000000 && sisa <= -10000000) {
-    sisa = sisa * -1;
-    printf("g ");
-    IfSisa2();
-  }
-  if (sisa > -1000000000 && sisa <= -100000000) {
-    sisa = sisa * -1;
-    printf("g ");
-    IfSisa1();
-  }
-  if (sisa > -10000000000 && sisa <= -100000000) {
-    sisa = sisa * -1;
-    printf("g ");
-    IfSisa();
-  }
-}
+static int read_integer(const char *prompt, long long *value) {
+  char input[128], *end;
+  long long parsed;
 
-IfSisa() {
-  int n = 100000000;
-  HasilAkhir = sisa / 1000000000;
-  IfHasilAkhir();
-  HasilAkhir = sisa % 1000000000;
-  while (n != 0) {
-    HasilAkhir = HasilAkhir / n;
-    IfHasilAkhir();
-    HasilAkhir = sisa % n;
-    n = n / 10;
-  }
-}
+  printf("%s", prompt);
+  fflush(stdout);
+  if (fgets(input, sizeof(input), stdin) == NULL)
+    return feof(stdin) && !ferror(stdin) ? -1 : 0;
 
-IfSisa1() {
-  int n = 10000000;
-  HasilAkhir = sisa / 100000000;
-  IfHasilAkhir();
-  HasilAkhir = sisa % 100000000;
-  while (n != 0) {
-    HasilAkhir = HasilAkhir / n;
-    IfHasilAkhir();
-    HasilAkhir = sisa % n;
-    n = n / 10;
-  }
-}
-
-IfSisa2() {
-  int n = 1000000;
-  HasilAkhir = sisa / 10000000;
-  IfHasilAkhir();
-  HasilAkhir = sisa % 10000000;
-  while (n != 0) {
-    HasilAkhir = HasilAkhir / n;
-    IfHasilAkhir();
-    HasilAkhir = sisa % n;
-    n = n / 10;
-  }
-}
-
-IfSisa3() {
-  int n = 100000;
-  HasilAkhir = sisa / 1000000;
-  IfHasilAkhir();
-  HasilAkhir = sisa % 1000000;
-  while (n != 0) {
-    HasilAkhir = HasilAkhir / n;
-    IfHasilAkhir();
-    HasilAkhir = sisa % n;
-    n = n / 10;
-  }
-}
-
-IfSisa4() {
-  int n = 10000;
-  HasilAkhir = sisa / 100000;
-  IfHasilAkhir();
-  HasilAkhir = sisa % 100000;
-  while (n != 0) {
-    HasilAkhir = HasilAkhir / n;
-    IfHasilAkhir();
-    HasilAkhir = sisa % n;
-    n = n / 10;
-  }
-}
-
-IfSisa5() {
-  int n = 1000;
-  HasilAkhir = sisa / 10000;
-  IfHasilAkhir();
-  HasilAkhir = sisa % 10000;
-  while (n != 0) {
-    HasilAkhir = HasilAkhir / n;
-    IfHasilAkhir();
-    HasilAkhir = sisa % n;
-    n = n / 10;
-  }
-}
-
-IfSisa6() {
-  HasilAkhir = sisa / 1000;
-  IfHasilAkhir();
-  HasilAkhir = sisa % 1000;
-  HasilAkhir = HasilAkhir / 100;
-  IfHasilAkhir();
-  HasilAkhir = sisa % 100;
-  HasilAkhir = HasilAkhir / 10;
-  IfHasilAkhir();
-  ;
-  HasilAkhir = sisa % 10;
-  IfHasilAkhir();
-}
-
-IfFinal() {
-  if (sisa < 10) {
-    HasilAkhir = sisa;
-    IfHasilAkhir();
-  }
-  if (sisa >= 10 && sisa < 100) {
-    HasilAkhir = sisa / 10;
-    IfHasilAkhir();
-    HasilAkhir = sisa % 10;
-    IfHasilAkhir();
-  }
-  if (sisa >= 100 && sisa < 1000) {
-    HasilAkhir = sisa / 100;
-    IfHasilAkhir();
-    HasilAkhir = sisa % 100;
-    HasilAkhir = HasilAkhir / 10;
-    IfHasilAkhir();
-    HasilAkhir = sisa % 10;
-    IfHasilAkhir();
-  }
-  if (sisa >= 1000 && sisa < 10000) {
-    IfSisa6();
-  }
-  if (sisa >= 10000 && sisa < 100000) {
-    IfSisa5();
-  }
-  if (sisa >= 100000 && sisa < 1000000) {
-    IfSisa4();
-  }
-  if (sisa >= 1000000 && sisa < 10000000) {
-    IfSisa3();
-  }
-  if (sisa >= 10000000 && sisa < 100000000) {
-    IfSisa2();
-  }
-  if (sisa >= 100000000 && sisa < 1000000000) {
-    IfSisa1();
-  }
-  if (sisa >= 1000000000) {
-    IfSisa();
-  }
-}
-
-main() // PROGRAM UTAMA
-{
-  do {
-  z:
-    printf("\t\tPROGRAM KALKULATOR BCD DECODER");
-    printf("\n================================================================="
-           "===============");
-    printf("\n\t\tPembimbing : Faisal Mutaqqin, S.Kom., M.T\n");
-    printf("\t\tDibuat oleh: \n\t-M Idham Fachrurrozi [17081010044] -R Rakhman "
-           "Wahid [17081010068]");
-    printf("\n================================================================="
-           "===============");
-    printf("\nPilih Operasi Bilangan: "
-           "\n1.Penjumlahan\n2.Pengurangan\n3.Perkalian\n4.Pembagian\n5."
-           "Exit\n\nPilihan : ");
-    scanf("%d", &pilih);
-    switch (pilih) {
-    case 1:
-      printf("\nAngka pertama : ");
-      scanf("%d", &p);
-      printf("Angka kedua : ");
-      scanf("%d", &q);
-      sisa = p + q;
-      break;
-    case 2:
-      printf("\nAngka pertama : ");
-      scanf("%d", &p);
-      printf("Angka kedua : ");
-      scanf("%d", &q);
-      sisa = p - q;
-      break;
-    case 3:
-      printf("\nAngka pertama : ");
-      scanf("%d", &p);
-      printf("Angka kedua : ");
-      scanf("%d", &q);
-      sisa = p * q;
-      break;
-    case 4:
-      printf("\nAngka pertama : ");
-      scanf("%d", &p);
-      printf("Angka kedua : ");
-      scanf("%d", &q);
-      sisa = p / q;
-      break;
-    case 5:
-      printf("\nTerimakasih telah menggunakan program ini :)");
-      exit(0);
-      break;
-    default:
-      printf("\nOPERASI TIDAK DITEMUKAN, PILIH LAGI!\n");
-      goto z;
-      break;
+  if (strchr(input, '\n') == NULL && !feof(stdin)) {
+    int ch = getchar();
+    if (ch != '\n' && ch != EOF) {
+      while ((ch = getchar()) != '\n' && ch != EOF) {
+      }
+      return 0;
     }
-    printf("Hasil operasi : %d\n", sisa);
+  }
 
-    a = sisa;
-    sisa = p;
-    printf("\nAngka Pertama Setelah diubah menjadi kode\t: ");
-    IfFinal();
-    IfMinus();
+  errno = 0;
+  parsed = strtoll(input, &end, 10);
+  if (end == input || errno == ERANGE)
+    return 0;
+  while (isspace((unsigned char)*end))
+    end++;
+  if (*end != '\0' || ferror(stdin))
+    return 0;
 
-    sisa = q;
-    printf("\nAngka Kedua Setelah Diubah menjadi kode\t\t: ");
-    IfFinal();
-    IfMinus();
+  *value = parsed;
+  return 1;
+}
 
-    sisa = a;
-    printf("\nSetelah diubah menjadi kode\t\t\t: ");
-    IfFinal();
-    IfMinus();
-    printf("\n\n");
+static int calculate(int operation, long long left, long long right,
+                     long long *result) {
+  switch (operation) {
+  case 1:
+    if ((right > 0 && left > LLONG_MAX - right) ||
+        (right < 0 && left < LLONG_MIN - right))
+      return 0;
+    *result = left + right;
+    return 1;
+  case 2:
+    if ((right > 0 && left < LLONG_MIN + right) ||
+        (right < 0 && left > LLONG_MAX + right))
+      return 0;
+    *result = left - right;
+    return 1;
+  case 3:
+    if (left > 0) {
+      if ((right > 0 && left > LLONG_MAX / right) ||
+          (right < 0 && right < LLONG_MIN / left))
+        return 0;
+    } else if (left < 0) {
+      if ((right > 0 && left < LLONG_MIN / right) ||
+          (right < 0 && left < LLONG_MAX / right))
+        return 0;
+    }
+    *result = left * right;
+    return 1;
+  case 4:
+    if (right == 0 || (left == LLONG_MIN && right == -1))
+      return 0;
+    *result = left / right;
+    return 1;
+  default:
+    return 0;
+  }
+}
 
-  } while (pilih != 5);
+static void print_digit(unsigned int digit) {
+  printf("%s ", digit_segments[digit]);
+}
+
+static void print_number(long long value) {
+  unsigned long long magnitude;
+  unsigned int digits[sizeof(value) * CHAR_BIT];
+  size_t count = 0;
+
+  if (value < 0) {
+    printf("g ");
+    magnitude = (unsigned long long)(-(value + 1)) + 1;
+  } else {
+    magnitude = (unsigned long long)value;
+  }
+
+  do {
+    digits[count++] = (unsigned int)(magnitude % 10);
+    magnitude /= 10;
+  } while (magnitude != 0);
+
+  while (count > 0)
+    print_digit(digits[--count]);
+}
+
+int main(void) {
+  long long choice, left, right, result;
+  int operation, input_status;
+
+  for (;;) {
+    printf("\nPROGRAM KALKULATOR BCD DECODER\n");
+    printf("1. Penjumlahan\n2. Pengurangan\n3. Perkalian\n");
+    printf("4. Pembagian\n5. Keluar\n");
+
+    input_status = read_integer("Pilihan: ", &choice);
+    if (input_status <= 0) {
+      if (input_status == -1)
+        return 0;
+      fputs("Pilihan harus berupa bilangan bulat dalam rentang long long.\n", stderr);
+      return 1;
+    }
+
+    if (choice == 5) {
+      puts("Terima kasih telah menggunakan program ini.");
+      return 0;
+    }
+
+    if (choice < 1 || choice > 4) {
+      puts("Operasi tidak ditemukan.");
+      continue;
+    }
+    operation = (int)choice;
+
+    if (read_integer("Angka pertama: ", &left) <= 0 ||
+        read_integer("Angka kedua: ", &right) <= 0) {
+      fputs("Masukan harus berupa bilangan bulat.\n", stderr);
+      return 1;
+    }
+
+    if (!calculate(operation, left, right, &result)) {
+      puts("Operasi tidak valid: pembagian dengan nol atau hasil di luar rentang long long.");
+      continue;
+    }
+
+    printf("Hasil operasi: %lld\n", result);
+    printf("Angka pertama dalam kode segmen: ");
+    print_number(left);
+    printf("\nAngka kedua dalam kode segmen: ");
+    print_number(right);
+    printf("\nHasil dalam kode segmen: ");
+    print_number(result);
+    putchar('\n');
+  }
 }

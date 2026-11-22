@@ -1,7 +1,67 @@
-#include <conio.h>
+#include <ctype.h>
+#include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+/* Consume the entire line, including any excess, before the next prompt. */
+static int readLine(char *line, int capacity) {
+  if (fgets(line, capacity, stdin) == NULL)
+    return 0;
+
+  char *newline = strchr(line, '\n');
+  if (newline != NULL) {
+    *newline = '\0';
+  } else {
+    int ch = getchar();
+    if (ch != '\n' && ch != EOF) {
+      while ((ch = getchar()) != '\n' && ch != EOF) {
+      }
+      puts("Input terlalu panjang. Ulangi:");
+      return ferror(stdin) ? 0 : -1;
+    }
+  }
+  return ferror(stdin) ? 0 : 1;
+}
+
+static int readInt(int *value) {
+  char line[128];
+  int status;
+
+  while ((status = readLine(line, sizeof(line))) != 0) {
+    if (status < 0)
+      continue;
+    char *end;
+    errno = 0;
+    long parsed = strtol(line, &end, 10);
+    if (end != line && errno != ERANGE && parsed >= INT_MIN &&
+        parsed <= INT_MAX) {
+      while (isspace((unsigned char)*end))
+        end++;
+      if (*end == '\0') {
+        *value = (int)parsed;
+        return 1;
+      }
+    }
+    puts("Input tidak valid. Masukkan bilangan bulat:");
+  }
+  return 0;
+}
+
+static int readText(char value[10]) {
+  int status;
+  while ((status = readLine(value, 10)) != 0) {
+    if (status < 0)
+      continue;
+    for (const char *current = value; *current != '\0'; current++) {
+      if (!isspace((unsigned char)*current))
+        return 1;
+    }
+    puts("Input tidak boleh kosong. Ulangi:");
+  }
+  return 0;
+}
 
 struct node {
   int data;
@@ -12,6 +72,7 @@ typedef struct node node;
 
 struct queue {
   int count;
+  unsigned long long completed;
   node *front;
   node *rear;
 };
@@ -21,67 +82,54 @@ queue createQueue(void) {
   queue myQueue;
 
   myQueue.count = 0;
+  myQueue.completed = 0;
   myQueue.front = NULL;
   myQueue.rear = NULL;
   return (myQueue);
 }
 
-int enqueue(int data, char plat[10], char tipe[10], char merk[10],
+int enqueue(int data, const char *plat, const char *tipe, const char *merk,
             queue *myQueue) {
-  int success;
-
   if (myQueue->count >= 10)
-    success = 0;
+    return 0;
 
-  else {
-    node *newPtr;
-    newPtr = (node *)malloc(sizeof(node));
+  node *newPtr = malloc(sizeof(*newPtr));
+  if (newPtr == NULL)
+    return 0;
 
-    newPtr->data = data;
-    strcpy(newPtr->plat, plat);
-    strcpy(newPtr->tipe, tipe);
-    strcpy(newPtr->merk, merk);
+  newPtr->data = data;
+  snprintf(newPtr->plat, sizeof(newPtr->plat), "%s", plat);
+  snprintf(newPtr->tipe, sizeof(newPtr->tipe), "%s", tipe);
+  snprintf(newPtr->merk, sizeof(newPtr->merk), "%s", merk);
+  newPtr->next = NULL;
 
-    newPtr->next = NULL;
+  if (myQueue->rear == NULL)
+    myQueue->front = newPtr;
+  else
+    myQueue->rear->next = newPtr;
 
-    if (myQueue->front == NULL)
-      myQueue->front = newPtr;
-    else
-      myQueue->rear->next = newPtr;
-
-    myQueue->rear = newPtr;
-    myQueue->count++;
-    success = 1;
-  }
-  return success;
-}
-
-node *createNode(void) {
-  node *newPtr;
-
-  newPtr = (node *)malloc(sizeof(newPtr));
-  return (newPtr);
+  myQueue->rear = newPtr;
+  myQueue->count++;
+  return 1;
 }
 
 void destroy(queue *myQueue) {
-  node *temp;
-
-  while (myQueue->count != 0) {
-    temp = myQueue->front;
-    myQueue->front = myQueue->front->next;
-    myQueue->count--;
+  while (myQueue->front != NULL) {
+    node *temp = myQueue->front;
+    myQueue->front = temp->next;
     free(temp);
   }
 
   myQueue->count = 0;
-  myQueue->front = NULL;
   myQueue->rear = NULL;
 }
 
 void depan(queue myQueue) {
-  node *temp;
-
-  temp = myQueue.front;
+  node *temp = myQueue.front;
+  if (temp == NULL) {
+    puts("Antrian kosong.");
+    return;
+  }
   printf("antrian mobil paling depan\n");
 
   printf("\n\n%4d\n", temp->data);
@@ -91,9 +139,11 @@ void depan(queue myQueue) {
 }
 
 void belakang(queue myQueue) {
-  node *temp;
-
-  temp = myQueue.rear;
+  node *temp = myQueue.rear;
+  if (temp == NULL) {
+    puts("Antrian kosong.");
+    return;
+  }
   printf("antrian mobil paling belakang :\n");
 
   printf("\n\n%4d\n", temp->data);
@@ -116,84 +166,64 @@ void display(queue myQueue) {
   }
 }
 
+void cetakMundur(node *current) {
+  if (current == NULL)
+    return;
+
+  cetakMundur(current->next);
+  printf("Nomor antrian : %d\n", current->data);
+  printf("Plat mobil : %s\n", current->plat);
+  printf("Tipe mobil : %s\n", current->tipe);
+  printf("Merk mobil : %s\n\n", current->merk);
+}
+
 void disbal(queue myQueue) {
-  node *temp;
-  temp = myQueue.front;
-
-  int n = 0, c, d, a[100], b[100];
-
-  while (temp) {
-    temp = temp->next;
-    n++;
-  };
-
-  char x[n][11], z[n][11], y[n][11], plat[n][10], tipe[n][10], merk[n][10];
-  temp = myQueue.front;
-  for (c = 0; c < n; c++) {
-    b[c] = temp->data;
-    strcpy(x[c], temp->plat);
-    strcpy(y[c], temp->tipe);
-    strcpy(z[c], temp->merk);
-    temp = temp->next;
-  }
-
-  for (c = n - 1, d = 0; c >= 0; c--, d++) {
-    a[d] = b[c];
-    strcpy(plat[d], x[c]);
-    strcpy(tipe[d], y[c]);
-    strcpy(merk[d], z[c]);
+  if (myQueue.front == NULL) {
+    puts("Antrian kosong.");
+    return;
   }
 
   printf("Antrian dari belakang ke depan\n\n");
-
-  for (c = 0; c < n; c++) {
-    printf("Nomor antrian : %d\n", a[c]);
-    printf("Plat mobil : %s\n", plat[c]);
-    printf("Tipe mobil : %s\n", tipe[c]);
-    printf("Merk mobil : %s\n\n", merk[c]);
-  }
+  cetakMundur(myQueue.front);
 }
 
-void dequeue(queue *myQueue) {
-  int dequeue;
-  if (myQueue->count == 0) {
-    printf("\nQueue is Empty!");
-  } else {
-    node *dltPtr;
-    dltPtr = myQueue->front;
-    dequeue = dltPtr->data;
-    myQueue->front = myQueue->front->next;
-    free(dltPtr);
-
-    myQueue->count--;
-    printf("\nnomor antrian yang selesai dicuci: %d", dequeue);
+int dequeue(queue *myQueue) {
+  if (myQueue->front == NULL) {
+    puts("\nQueue is Empty!");
+    return 0;
   }
+  if (myQueue->completed == ULLONG_MAX / 30000ULL) {
+    puts("Pemasukan di luar rentang bilangan; antrian tidak diubah.");
+    return 0;
+  }
+
+  node *dltPtr = myQueue->front;
+  int number = dltPtr->data;
+  myQueue->front = dltPtr->next;
+  if (myQueue->rear == dltPtr)
+    myQueue->rear = NULL;
+  free(dltPtr);
+
+  myQueue->count--;
+  myQueue->completed++;
+  printf("\nnomor antrian yang selesai dicuci: %d\n", number);
+  return 1;
 }
 
-void duit(queue *myQueue) {
-
-  float dequeue;
-  if (myQueue->count == 0) {
-    printf("\nBelum untung boz!");
-  }
-
-  else {
-    node *dltPtr;
-    dltPtr = myQueue->front;
-    dequeue = dltPtr->data;
-
-    printf("\nUntung hari in boz! : %2.f", ((dequeue * 30000) - 30000));
-  }
+void duit(const queue *myQueue) {
+  if (myQueue->completed == 0)
+    puts("\nBelum untung boz!");
+  else
+    printf("\nUntung hari in boz! : %llu\n", myQueue->completed * 30000ULL);
 }
 
-int main() {
+int main(void) {
   int choice, num, success;
   char plat[10], tipe[10], merk[10];
   queue myQueue;
 
   myQueue = createQueue();
   while (1) {
-    system("cls");
     printf("\n-----QUEUE MENU-----\n");
     printf("\n1. Tambah Antrian");
     printf("\n2. Mobil Selesai dicuci");
@@ -204,66 +234,65 @@ int main() {
     printf("\n7. Jumlah pemasukan");
     printf("\n8. Exit");
     printf("\n\nEnter your choice: ");
-    scanf("%d", &choice);
+    if (!readInt(&choice))
+      break;
 
     printf("\n\n");
     switch (choice) {
     case 1:
       printf("Nomor antrian : ");
-      scanf("%d", &num);
+      if (!readInt(&num))
+        goto cleanup;
       printf("Nomor plat    : ");
-      scanf("%s", &plat);
+      if (!readText(plat))
+        goto cleanup;
       printf("Tipe mobil    : ");
-      scanf("%s", &tipe);
+      if (!readText(tipe))
+        goto cleanup;
       printf("Merk mobil    : ");
-      scanf("%s", &merk);
+      if (!readText(merk))
+        goto cleanup;
 
       success = enqueue(num, plat, tipe, merk, &myQueue);
 
       if (success == 0) {
-        printf("operasi enqueue gagal");
-        getch();
+        printf("operasi enqueue gagal\n");
       }
       break;
 
     case 2:
       dequeue(&myQueue);
-      getch();
       break;
 
     case 3:
       display(myQueue);
-      getch();
       break;
 
     case 4:
       disbal(myQueue);
-      getch();
       break;
 
     case 5:
       depan(myQueue);
-      getch();
       break;
 
     case 6:
       belakang(myQueue);
-      getch();
       break;
 
     case 7:
       duit(&myQueue);
-      getch();
       break;
 
     case 8:
-      destroy(&myQueue);
-      exit(1);
+      goto cleanup;
     default:
       printf("\nInvalid Choice\n");
       break;
     }
   }
 
-  return 0;
+cleanup:
+  destroy(&myQueue);
+  return ferror(stdin) ? EXIT_FAILURE : EXIT_SUCCESS;
 }

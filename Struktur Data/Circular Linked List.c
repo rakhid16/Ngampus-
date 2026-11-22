@@ -1,7 +1,77 @@
-#include <conio.h>
+#include <ctype.h>
+#include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+static int bacaTeks(char *teks, size_t ukuran) {
+  for (;;) {
+    if (fgets(teks, (int)ukuran, stdin) == NULL)
+      return 0;
+    size_t panjang = strlen(teks);
+    if (panjang > 0 && teks[panjang - 1] == '\n')
+      teks[--panjang] = '\0';
+    else {
+      int c = getchar();
+      if (c == '\r')
+        c = getchar();
+      if (c != '\n' && c != EOF) {
+        while ((c = getchar()) != '\n' && c != EOF) {
+        }
+        printf("Input terlalu panjang. Ulangi : ");
+        continue;
+      }
+    }
+    if (panjang > 0 && teks[panjang - 1] == '\r')
+      teks[--panjang] = '\0';
+    size_t i = 0;
+    while (isspace((unsigned char)teks[i]))
+      i++;
+    if (teks[i] != '\0')
+      return 1;
+    printf("Input tidak boleh kosong. Ulangi : ");
+  }
+}
+
+static int bacaAngka(long long int *nilai, long long int minimum,
+                     long long int maksimum) {
+  char teks[128], *akhir;
+  while (bacaTeks(teks, sizeof(teks))) {
+    errno = 0;
+    long long int angka = strtoll(teks, &akhir, 10);
+    if (akhir != teks && errno != ERANGE) {
+      while (isspace((unsigned char)*akhir))
+        akhir++;
+      if (*akhir == '\0' && angka >= minimum && angka <= maksimum) {
+        *nilai = angka;
+        return 1;
+      }
+    }
+    printf("Angka tidak valid. Ulangi : ");
+  }
+  return 0;
+}
+
+static int bacaPilihan(char *pilih, const char *pilihan) {
+  char teks[32];
+  while (bacaTeks(teks, sizeof(teks))) {
+    if (teks[1] == '\0' && strchr(pilihan, teks[0]) != NULL) {
+      *pilih = teks[0];
+      return 1;
+    }
+    printf("Pilihan tidak valid. Ulangi : ");
+  }
+  return 0;
+}
+
+static int bacaInt(int *nilai, int minimum, int maksimum) {
+  long long int angka;
+  if (!bacaAngka(&angka, minimum, maksimum))
+    return 0;
+  *nilai = (int)angka;
+  return 1;
+}
 
 struct node {
   int tingbad;
@@ -11,34 +81,28 @@ struct node {
 typedef struct node node;
 
 node *pList = NULL;
+static node *pLast = NULL;
 
-node *alokasiNodeBaru() {
+node *alokasiNodeBaru(void) {
   node *pNew = NULL;
   pNew = (node *)malloc(sizeof(node));
   return (pNew);
 }
 
 void tambahAwal(node *pNew) {
-  node *temp;
-
+  if (pNew == NULL)
+    return;
   if (pList == NULL) {
     pNew->next = pNew;
-    pList = pNew;
-  }
-
-  else {
-    temp = pList;
-
-    while (temp->next != pList)
-      temp = temp->next;
-
-    temp->next = pNew;
+    pLast = pNew;
+  } else {
     pNew->next = pList;
-    pList = pNew;
+    pLast->next = pNew;
   }
+  pList = pNew;
 }
 
-void cetak() {
+void cetak(void) {
   node *pWalker;
   pWalker = pList;
 
@@ -49,13 +113,11 @@ void cetak() {
     printf("Data Mahasiswa yang Kemping\n\n");
 
     while (pWalker->next != pList) {
-      fflush(stdin);
       printf("Nama   : %s", pWalker->nama);
       printf("\nGender : %c", pWalker->jeka);
       printf("\nTinggi : %d\n\n", pWalker->tingbad);
       pWalker = pWalker->next;
     }
-    fflush(stdin);
 
     printf("Nama   : %s", pWalker->nama);
     printf("\nGender : %c", pWalker->jeka);
@@ -63,86 +125,86 @@ void cetak() {
   }
 }
 
-void hapusAwal() {
-  node *pEnd, *pHapus;
-  pEnd = pList;
-  pHapus = pList;
-
-  while (pEnd->next != pList)
-    pEnd = pEnd->next;
-
-  pEnd->next = pHapus->next;
-  pList = pList->next;
+void hapusAwal(void) {
+  node *pHapus = pList;
+  if (pList == NULL)
+    return;
+  if (pList == pLast) {
+    pList = NULL;
+    pLast = NULL;
+  } else {
+    pList = pList->next;
+    pLast->next = pList;
+  }
   free(pHapus);
 }
 
-void hapusTengah() {
-  system("cls");
-
+void hapusTengah(void) {
   if (pList == NULL) {
     printf("data kosong");
-    getch();
+    return;
   }
-
-  else {
-    cetak();
-    int zeke, co;
-
-    printf("Sub menu :\n1. Hapus nama yang terakhir dimasukkan(nama paling "
-           "atas)\n2. Hapus nama lain\n\nMasukkan pilihan : ");
-    scanf("%d", &co);
-
-    if (co == 1)
-      hapusAwal();
-
-    else {
-      printf("Masukkan tinggi mahasiswa yang ingin dihapus/keluar circle : ");
-      scanf("%d", &zeke);
-
-      node *pCari, *pPre;
-      pPre = pList;
-      pCari = pList;
-
-      while (pCari->tingbad != zeke)
-        pCari = pCari->next;
-
-      while (pPre->next != pCari)
-        pPre = pPre->next;
-
-      pPre->next = pCari->next;
-      free(pCari);
+  cetak();
+  int zeke, co;
+  printf("Sub menu :\n1. Hapus nama yang terakhir dimasukkan(nama paling "
+         "atas)\n2. Hapus nama lain\n\nMasukkan pilihan : ");
+  if (!bacaInt(&co, 1, 2))
+    return;
+  if (co == 1) {
+    hapusAwal();
+    return;
+  }
+  printf("Masukkan tinggi mahasiswa yang ingin dihapus/keluar circle : ");
+  if (!bacaInt(&zeke, 1, INT_MAX))
+    return;
+  node *pCari = pList, *pPre = pLast;
+  do {
+    if (pCari->tingbad == zeke) {
+      if (pCari == pList)
+        hapusAwal();
+      else {
+        pPre->next = pCari->next;
+        if (pCari == pLast)
+          pLast = pPre;
+        free(pCari);
+      }
+      return;
     }
-  }
+    pPre = pCari;
+    pCari = pCari->next;
+  } while (pCari != pList);
+  printf("Data tidak ditemukan!");
 }
 
-int main(int argc, char *argv[]) {
+int main(void) {
   node *pNew;
   int pilih, tingbad;
   char nama[30], jeka;
 
   do {
-    system("cls");
-
     printf("Menu\n\n1. Tambah Data\n2. Hapus Data\n3. Tranverse\n4. Keluar "
            "Program\n\nMasukkan pilihan : ");
-    scanf("%d", &pilih);
+    if (!bacaInt(&pilih, 1, 4))
+      break;
 
     if (pilih == 1) {
-      system("cls");
-      pNew = alokasiNodeBaru();
-      fflush(stdin);
-
       printf("Masukkan nama          : ");
-      scanf("%[^\n]%*c", &nama);
-      fflush(stdin);
+      if (!bacaTeks(nama, sizeof(nama)))
+        break;
 
       printf("Masukkan jenis kelamin : ");
-      scanf("%c", &jeka);
-      fflush(stdin);
+      if (!bacaPilihan(&jeka, "lpLP"))
+        break;
 
       printf("Masukkan tinggi badan  : ");
-      scanf("%d", &tingbad);
-      fflush(stdin);
+      if (!bacaInt(&tingbad, 1, INT_MAX))
+        break;
+
+      pNew = alokasiNodeBaru();
+      if (pNew == NULL) {
+        printf("Alokasi memori gagal");
+        continue;
+      }
 
       pNew->tingbad = tingbad;
       strcpy(pNew->nama, nama);
@@ -154,15 +216,14 @@ int main(int argc, char *argv[]) {
       hapusTengah();
 
     else if (pilih == 3) {
-      system("cls");
       cetak();
-      getch();
     } else if (pilih != 4 && pilih != 2 && pilih != 1 && pilih != 3) {
       printf("Menu tersebut ndak ada");
-      getch();
     }
 
   } while (pilih != 4);
 
+  while (pList != NULL)
+    hapusAwal();
   return 0;
 }

@@ -1,4 +1,6 @@
-#include <conio.h>
+#include <ctype.h>
+#include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,6 +11,66 @@ struct node {
   struct node *next;
 };
 typedef struct node node;
+
+static int bacaTeks(char *teks, size_t ukuran) {
+  for (;;) {
+    if (fgets(teks, (int)ukuran, stdin) == NULL)
+      return 0;
+    size_t panjang = strlen(teks);
+    if (panjang > 0 && teks[panjang - 1] == '\n')
+      teks[--panjang] = '\0';
+    else {
+      int c = getchar();
+      if (c == '\r')
+        c = getchar();
+      if (c != '\n' && c != EOF) {
+        while ((c = getchar()) != '\n' && c != EOF) {
+        }
+        printf("Input terlalu panjang. Ulangi : ");
+        continue;
+      }
+    }
+    if (panjang > 0 && teks[panjang - 1] == '\r')
+      teks[--panjang] = '\0';
+    size_t i = 0;
+    while (isspace((unsigned char)teks[i]))
+      i++;
+    if (teks[i] != '\0')
+      return 1;
+    printf("Input tidak boleh kosong. Ulangi : ");
+  }
+}
+
+static int bacaAngka(long long int *nilai, long long int minimum,
+                     long long int maksimum) {
+  char teks[128], *akhir;
+  while (bacaTeks(teks, sizeof(teks))) {
+    errno = 0;
+    long long int angka = strtoll(teks, &akhir, 10);
+    if (akhir != teks && errno != ERANGE) {
+      while (isspace((unsigned char)*akhir))
+        akhir++;
+      if (*akhir == '\0' && angka >= minimum && angka <= maksimum) {
+        *nilai = angka;
+        return 1;
+      }
+    }
+    printf("Angka tidak valid. Ulangi : ");
+  }
+  return 0;
+}
+
+static int bacaPilihan(char *pilih, const char *pilihan) {
+  char teks[32];
+  while (bacaTeks(teks, sizeof(teks))) {
+    if (teks[1] == '\0' && strchr(pilihan, teks[0]) != NULL) {
+      *pilih = teks[0];
+      return 1;
+    }
+    printf("Pilihan tidak valid. Ulangi : ");
+  }
+  return 0;
+}
 
 void tranverse(node *head);
 
@@ -32,25 +94,19 @@ void tambahAwal(node **head) { // PILIHAN KE 1 - MEMASUKKAN DATA
   node *pTemp;
   long long int nrp;
   char nama[30], jeka, alamat[30];
-  pTemp = (node *)malloc(sizeof(node));
-  system("cls");
-  fflush(stdin);
-
   printf("Masukkan NRP : ");
-  scanf("%lli", &nrp);
-  fflush(stdin);
-
+  if (!bacaAngka(&nrp, 1, LLONG_MAX))
+    return;
   printf("Masukkan Nama : ");
-  scanf("%[^\n]%*c", &nama);
-  fflush(stdin);
-
+  if (!bacaTeks(nama, sizeof(nama)))
+    return;
   printf("Masukkan Jenis Kelamin (l/p) : ");
-  scanf("%c", &jeka);
-  fflush(stdin);
-
+  if (!bacaPilihan(&jeka, "lpLP"))
+    return;
   printf("Masukkan Alamat : ");
-  scanf("%[^\n]%*c", &alamat);
-  fflush(stdin);
+  if (!bacaTeks(alamat, sizeof(alamat)))
+    return;
+  pTemp = createNode();
 
   if (pTemp != NULL) {
     pTemp->nrp = nrp;
@@ -61,33 +117,30 @@ void tambahAwal(node **head) { // PILIHAN KE 1 - MEMASUKKAN DATA
     insertNode(head, NULL, pTemp);
   } else {
     printf("Alokasi memori gagal");
-    getch();
   }
 }
 
 void updateData(node **head) { // PILIHAN NOMOR 2 - MEMPERBARUI DATA
-  node *pTemp, *pCur;
+  node *pTemp;
   long long int nrp;
   char nama[30], jeka, alamat[30];
-  system("cls");
-  fflush(stdin);
 
   printf("Memperbarui data\n\n");
   printf("Masukkan NRP : ");
-  scanf("%lli", &nrp);
-  fflush(stdin);
+  if (!bacaAngka(&nrp, 1, LLONG_MAX))
+    return;
 
   printf("Masukkan Nama : ");
-  scanf("%[^\n]%*c", &nama);
-  fflush(stdin);
+  if (!bacaTeks(nama, sizeof(nama)))
+    return;
 
   printf("Masukkan Jenis Kelamin (l/p) : ");
-  scanf("%c", &jeka);
-  fflush(stdin);
+  if (!bacaPilihan(&jeka, "lpLP"))
+    return;
 
   printf("Masukkan Alamat : ");
-  scanf("%[^\n]%*c", &alamat);
-  fflush(stdin);
+  if (!bacaTeks(alamat, sizeof(alamat)))
+    return;
 
   pTemp = *head;
   while (pTemp != NULL && pTemp->nrp != nrp)
@@ -98,10 +151,8 @@ void updateData(node **head) { // PILIHAN NOMOR 2 - MEMPERBARUI DATA
     strcpy(pTemp->nama, nama);
     pTemp->jeka = jeka;
     strcpy(pTemp->alamat, alamat);
-    pTemp->next = NULL;
   } else
     printf("Data yang ingin dirubah  melalui NRP tidak ditemukan!");
-  getch();
 }
 
 void deleteNode(node **head, node *pPre, node *pCur) {
@@ -114,13 +165,12 @@ void deleteNode(node **head, node *pPre, node *pCur) {
 
 void hapusData(node **head) { // PILIHAN NOMOR 3 - MENGHAPUS DATA
   node *pCur, *pPre;
-  int pos;
   long long int nrp;
-  system("cls");
   tranverse(*head);
 
   printf("\n\nData yang ingin dihapus?\nMasukkan NRP : ");
-  scanf("%lli", &nrp);
+  if (!bacaAngka(&nrp, 1, LLONG_MAX))
+    return;
 
   pPre = NULL;
   pCur = *head;
@@ -134,7 +184,6 @@ void hapusData(node **head) { // PILIHAN NOMOR 3 - MENGHAPUS DATA
     deleteNode(head, pPre, pCur);
   else {
     printf("\nTidak ada data seperti itu!");
-    getch();
   }
 }
 
@@ -142,7 +191,6 @@ void tranverse(node *head) { // PILIHAN KE 4 - MENAMPILKAN DATA
   node *pWalker;
   int i = 0;
   pWalker = head;
-  system("cls");
 
   if (pWalker == NULL)
     printf("NULL");
@@ -169,21 +217,20 @@ void deleteList(
   }
 }
 
-int main() { // PROGRAM UTAMA
+int main(void) { // PROGRAM UTAMA
   node *head;
   char pilih;
   head = NULL;
 
   do {
-    system("cls");
-
     printf("------- MENU DAFTAR HADIR MAHASISWA -------");
     printf("\n\n1. Tambah data");
     printf("\n2. Update data");
     printf("\n3. Delete data");
     printf("\n4. Tampilkan data");
     printf("\n\nMasukkan pilihan (tekan q untuk keluar) : ");
-    scanf("%c", &pilih);
+    if (!bacaPilihan(&pilih, "1234q"))
+      break;
 
     if (pilih == '1')
       tambahAwal(&head);
@@ -193,8 +240,8 @@ int main() { // PROGRAM UTAMA
       hapusData(&head);
     else if (pilih == '4') {
       tranverse(head);
-      getch();
     }
   } while (pilih != 'q');
   deleteList(head);
+  return 0;
 }

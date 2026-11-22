@@ -1,6 +1,42 @@
-#include <conio.h>
+#include <ctype.h>
+#include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+static int readInt(int *value) {
+  char line[128];
+
+  while (fgets(line, sizeof(line), stdin) != NULL) {
+    if (strchr(line, '\n') == NULL) {
+      int ch = getchar();
+      if (ch != '\n' && ch != EOF) {
+        while ((ch = getchar()) != '\n' && ch != EOF) {
+        }
+        puts("Input terlalu panjang. Masukkan bilangan bulat:");
+        continue;
+      }
+    }
+    if (ferror(stdin))
+      return 0;
+
+    char *end;
+    errno = 0;
+    long parsed = strtol(line, &end, 10);
+    if (end != line && errno != ERANGE && parsed >= INT_MIN &&
+        parsed <= INT_MAX) {
+      while (isspace((unsigned char)*end))
+        end++;
+      if (*end == '\0') {
+        *value = (int)parsed;
+        return 1;
+      }
+    }
+    puts("Input tidak valid. Masukkan bilangan bulat:");
+  }
+  return 0;
+}
 
 struct node {
   int data;
@@ -9,16 +45,10 @@ struct node {
 typedef struct node node;
 
 struct stack {
-  int count;
+  size_t count;
   node *top;
 };
 typedef struct stack stack;
-
-node *createNode(void) {
-  node *newPtr;
-  newPtr = (node *)malloc(sizeof(newPtr));
-  return (newPtr);
-}
 
 stack createStack(void) {
   stack head;
@@ -28,26 +58,25 @@ stack createStack(void) {
 }
 
 int push(int data, stack *head) { // PILIHAN NOMOR 1
-  node *baru;
-  int success;
-  baru = (node *)malloc(sizeof(node));
+  node *baru = malloc(sizeof(*baru));
+  if (baru == NULL)
+    return 0;
 
   baru->data = data;
   baru->next = head->top;
   head->top = baru;
-  head->count = (head->count) + 1;
-  success = 1;
-  return (success);
+  head->count++;
+  return 1;
 }
 
-int stackTop(stack head) { // PILIHAN NOMOR 2
-  int atas;
-  atas = head.top->data;
-  return (atas);
+int stackTop(const stack *head, int *value) { // PILIHAN NOMOR 2
+  if (head->top == NULL)
+    return 0;
+  *value = head->top->data;
+  return 1;
 }
 
 void display(stack head) { // PILIHAN NOMOR 3
-  system("cls");
   node *temp;
   temp = head.top;
   printf("stack element(s) from top to bottom : \n");
@@ -62,89 +91,70 @@ void display(stack head) { // PILIHAN NOMOR 3
       temp = temp->next;
     }
   }
-  printf("\n\t+---+ bottom");
-  getch();
+  printf("\n\t+---+ bottom\n");
 }
 
-void pop(stack *head) { // PILIHAN NOMOR 4
-
-  node *pcur;
-
-  pcur = head->top;
-  head->top = pcur->next;
-  head->count = (head->count) - 1;
-
-  free(pcur);
+int pop(stack *head) { // PILIHAN NOMOR 4
+  node *top = head->top;
+  if (top == NULL)
+    return 0;
+  head->top = top->next;
+  head->count--;
+  free(top);
+  return 1;
 }
 
 void jumlahStack(stack head) { // PILIHAN NOMOR 5
-  node *temp;
-  temp = head.top;
-
-  system("cls");
-  int i = 0;
-
-  while (temp) {
-    temp = temp->next;
-    i++;
-  }
-  printf("jumlah stack : %d", i);
+  printf("jumlah stack : %zu\n", head.count);
 }
 
 void tambahStack(stack head) {
   node *temp;
   temp = head.top;
 
-  system("cls");
-  int i = 0, a = 0;
+  long long total = 0;
 
   while (temp) {
-    a = a + temp->data;
+    if ((temp->data > 0 && total > LLONG_MAX - temp->data) ||
+        (temp->data < 0 && total < LLONG_MIN - temp->data)) {
+      puts("Jumlah isi stack di luar rentang bilangan.");
+      return;
+    }
+    total += temp->data;
     temp = temp->next;
-    i++;
   }
 
-  printf("jumlah isi stack : %d", a);
+  printf("jumlah isi stack : %lld\n", total);
 }
 
-void search(stack *head) { // PILIHAN NOMOR 6
+int search(const stack *head) { // PILIHAN NOMOR 6
   int key;
 
   printf("masukkan :");
-  scanf("%d", &key);
+  if (!readInt(&key))
+    return 0;
 
   node *temp = head->top;
 
   while (temp != NULL) {
     if (temp->data == key) {
-      printf("Key Found");
-      return;
+      puts("Key Found");
+      return 1;
     }
     temp = temp->next;
   }
   printf("Key Not Found\n");
+  return 1;
 }
 
 void deex(stack *head) { // PILIHAN NOMOR 7
-  node *ppre = head->top, *pcur;
-
-  while (ppre != NULL) {
-
-    ppre = ppre->next;
-    pcur = head->top;
-    head->top = pcur->next;
-
-    head->count = (head->count) - 1;
-    free(pcur);
+  while (pop(head)) {
   }
-  display(*head);
-  exit(0);
+  printf("Stack berhasil dihapus.\n");
 }
 
 void cekStack(stack *head) { // PILIHAN NOMOR 9 & 10
-  node *temp = head->top;
-
-  if (temp == NULL) {
+  if (head->top == NULL) {
     printf("EMPTY");
   } else {
     printf("NOT EMPTY");
@@ -152,12 +162,11 @@ void cekStack(stack *head) { // PILIHAN NOMOR 9 & 10
 }
 
 int main(void) { // PROGRAM UTAMA
-  int choice, num, success;
+  int choice, num, value;
   stack head;
   head = createStack();
 
   while (1) {
-    system("cls");
     printf("\n-----STACK MENU-----\n");
     printf("\n1. Push element");
     printf("\n2. Element in top of stack");
@@ -169,24 +178,24 @@ int main(void) { // PROGRAM UTAMA
     printf("\n8. Count all element of Stack");
     printf("\n9. is Stack empty or not?");
     printf("\n\nEnter your choice: ");
-    scanf("%d", &choice);
+    if (!readInt(&choice))
+      break;
 
     switch (choice) {
     case 1:
       printf("\nElement to be pushed: ");
-      scanf("%d", &num);
-      success = push(num, &head);
-      if (success == 0) {
-        printf("\nstack is FULL");
-        printf("\nTry again after you pop some elements");
-        getch();
+      if (!readInt(&num))
+        goto cleanup;
+      if (!push(num, &head)) {
+        printf("\nAlokasi memori gagal.\n");
       }
       break;
 
     case 2:
-      num = stackTop(head);
-      printf("\nTop Element of Stack : %d ", num);
-      getch();
+      if (stackTop(&head, &value))
+        printf("\nTop Element of Stack : %d ", value);
+      else
+        printf("\nStack is empty.\n");
       break;
 
     case 3:
@@ -194,32 +203,28 @@ int main(void) { // PROGRAM UTAMA
       break;
 
     case 4:
-      pop(&head);
+      if (!pop(&head))
+        printf("\nStack is empty.\n");
       break;
 
     case 5:
       jumlahStack(head);
-      getch();
       break;
 
     case 6:
-      search(&head);
-      getch();
+      if (!search(&head))
+        goto cleanup;
       break;
 
     case 7:
-      deex(&head);
-      getch();
-      break;
+      goto cleanup;
 
     case 8:
       tambahStack(head);
-      getch();
       break;
 
     case 9:
       cekStack(&head);
-      getch();
       break;
 
     default:
@@ -227,4 +232,8 @@ int main(void) { // PROGRAM UTAMA
       break;
     }
   }
+
+cleanup:
+  deex(&head);
+  return ferror(stdin) ? EXIT_FAILURE : EXIT_SUCCESS;
 }
